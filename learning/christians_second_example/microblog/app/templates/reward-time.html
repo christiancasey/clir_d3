@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<meta charset="utf-8">
+		{% if title %}
+			<title>{{ title }} - Runaway Slaves</title>
+		{% else %}
+			<title>Runaway Slaves Data Visualization Project</title>
+		{% endif %} 
+	</head>
+	<body>
+		<h1>Runaway Slaves Data Visualization Project</h1>
+		<h2>{{ title }}</h2>
+		
+		<div id="scatter"></div>
+	
+		<script src="https://d3js.org/d3.v3.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.6.0/d3.min.js"></script>
+		<script type="text/javascript">
+			var data = JSON.parse('{{ js_data|safe }}');
+			
+			var margin = {
+				top: 20,
+				right: 20,
+				bottom: 30,
+				left: 100
+			}
+			width = 1200 - margin.left - margin.right;
+			height = 500 - margin.top - margin.bottom;
+			
+			var x = d3.scaleLinear().range([0, width]);
+			var y = d3.scaleLinear().range([0, height]);
+			
+			// Scale the range of the data
+			x.domain(d3.extent(data, function (d) {
+				return d.year;
+			}));
+			y.domain([1000, 0]);
+
+			var valueline = d3.line()
+				.x(function (d) {
+					return x(d.year);
+				})
+				.y(function (d) {
+					return y(d.reward);
+				});
+
+			var svg = d3.select("#scatter").append("svg")
+				.attr("width", width + margin.left + margin.right)
+				.attr("height", height + margin.top + margin.bottom)
+				.append("g")
+				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+			var path = svg.selectAll("dot")
+				.data(data)
+					.enter().append("circle")
+					.attr("r", 3)
+					.attr("cx", function (d) {
+						return x(d.year);
+					})
+					.attr("cy", function (d) {
+						return y(d.reward);
+					})
+					.attr("stroke", "#990000")
+					.attr("stroke-width", 1)
+					.attr("fill", "#85bb65");
+
+			svg.append("g")
+				.attr("transform", "translate(0," + height + ")")
+				.call(d3.axisBottom(x));
+			svg.append("g")
+				.call(d3.axisLeft(y)
+				.tickFormat(function (d) {
+					return "$" + d3.format(".2f")(d)
+				}));
+
+			console.log(data);
+
+		</script>
+	</body>
+</html>
